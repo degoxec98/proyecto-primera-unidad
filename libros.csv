@@ -1,0 +1,4 @@
+ID,Titulo,Genero,ISBN,Editorial,Autor
+1,Titulo 01,Accion,ISBN 01,Editorial 01,Autor 01/Autor02
+2,Titulo 02,Drama,ISBN 02,Editorial 01,Autor 01/Autor02/Autor03
+3,Titulo 03,Comedia,ISBN 03,Editorial 03,Autor 01
