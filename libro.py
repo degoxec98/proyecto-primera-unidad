@@ -51,6 +51,16 @@ class Book:
     def to_list(self) ->  list:
         return [self.__id, self.__title, self.__genre, self.__ISBN, self.__editorial, self.__authors]
 
+    def to_dict(self, fields: list) -> list:
+        return {
+            fields[0]: self.__id,
+            fields[1]: self.__title,
+            fields[2]: self.__genre,
+            fields[3]: self.__ISBN,
+            fields[4]: self.__editorial,
+            fields[5]: self.__authors
+        }
+
 
 class BookManagement:
     def __init__(self) -> None:
@@ -97,26 +107,10 @@ class BookManagement:
             reader = csv.DictReader(f, fieldnames= self.__fields)
             writer = csv.DictWriter(self.__tempfile, fieldnames= self.__fields)
             book = FactoryBook.create(*book)
+            book.set_id(id)
             for row in reader:
                 if row['ID'] == id:
-                    row['Titulo'] = book.get_title()
-                    row['Genero'] = book.get_genre()
-                    row['ISBN'] = book.get_ISBN()
-                    row['Editorial'] = book.get_editorial()
-                    row['Autor'] = book.get_authors()
-                row = {
-                    'ID': row['ID'],
-                    'Titulo': row['Titulo'],
-                    'Genero': row['Genero'],
-                    'ISBN': row['ISBN'],
-                    'Editorial': row['Editorial'],
-                    'Autor': row['Autor']
-                }
-                    # row[1] = book.get_title()
-                    # row[2] = book.get_genre()
-                    # row[3] = book.get_ISBN()
-                    # row[4] = book.get_editorial()
-                    # row[5] = book.get_authors()
+                    row = book.to_dict(self.__fields)
                 writer.writerow(row)
         shutil.move(self.__tempfile.name, self.__filename)
             
