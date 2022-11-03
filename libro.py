@@ -1,34 +1,39 @@
+<<<<<<< HEAD
 from random import randint
 import pandas as pd
 import csv,os
+=======
+from tempfile import NamedTemporaryFile
+import shutil, csv, os
+>>>>>>> main
 os.system("clear")
 
-class Libro:
-    def __init__(self, titulo: str, genero: str, ISBN: str, editorial: str, autor: list) -> None:
+class Book:
+    def __init__(self, title: str, genre: str, ISBN: str, editorial: str, authors: list) -> None:
         self.__id = None
-        self.__titulo = titulo
-        self.__genero = genero
+        self.__title = title
+        self.__genre = genre
         self.__ISBN = ISBN
         self.__editorial = editorial
-        self.__autor = autor
+        self.__authors = authors
 
     def get_id(self) -> str:
         return self.__id
     
-    def __set_id(self, id: str) -> None:
+    def set_id(self, id: str) -> None:
         self.__id = id
     
-    def get_titulo(self) -> str:
-        return self.__titulo
+    def get_title(self) -> str:
+        return self.__title
     
-    def set_titulo(self, titulo: str) -> None:
-        self.__titulo = titulo
+    def set_title(self, title: str) -> None:
+        self.__title = title
     
-    def get_genero(self) -> str:
-        return self.__genero
+    def get_genre(self) -> str:
+        return self.__genre
     
-    def set_genero(self, genero: str) -> None:
-        self.__genero = genero
+    def set_genre(self, genre: str) -> None:
+        self.__genre = genre
     
     def get_ISBN(self) -> str:
         return self.__ISBN
@@ -42,65 +47,134 @@ class Libro:
     def set_editorial(self, editorial: str) -> None:
         self.__editorial = editorial
     
-    def get_autor(self) -> list:
-        return self.__autor
+    def get_authors(self) -> list:
+        return self.__authors
     
-    def set_autor(self, autor: list) -> None:
-        self.__autor = autor
-
-    def libro_to_list(self, id = None) -> list:
-        print(self.get_autor())
-        autor = self.get_autor()[0]
-        for i in range(1, len(self.get_autor())):
-            autor += ("/" + self.get_autor()[i])
-        if self.get_id() == None:
-            self.__set_id(id)
-        libro_enlista = [self.__id, self.__titulo, self.__genero, self.__ISBN, self.__editorial, autor]
-        return libro_enlista
-
-def validar_str(txt: str, longitud_max: int) -> str:
-    while True:
-        dato = input(txt)
-        if  dato != "" and len(dato) <= longitud_max:
-            return dato
-        print("Ingrese un dato válido!")
-
-def validar_int(txt: str) -> int:
-    while True:
-        dato = input(txt)
-        if dato.isnumeric():
-            return int(dato)
-        print("Ingrese un dato válido!")
-
-def ingresar_datos() -> Libro:
-    titulo = validar_str("Ingrese el nombre del libro: ", 30)
-    genero = validar_str("Ingrese el genero del libro: ", 20)
-    ISBN = validar_str("Ingrese el ISBN del libro: ", 20)
-    editorial = validar_str("Ingrese el editorial del libro: ", 30)
-    num_autores = validar_int("Ingrese el número de autores: ")
-    autor = []
-    for i in range(0, num_autores):
-        autor.append(validar_str("Ingrese el nombre del autor: ", 30))
-    return Libro(titulo, genero, ISBN, editorial, autor)
+    def set_authors(self, authors: list) -> None:
+        self.__authors = authors
+    
+    def to_list(self) ->  list:
+        return [self.__id, self.__title, self.__genre, self.__ISBN, self.__editorial, self.__authors]
 
 
-def listar_libros():
-    with open('libros.csv') as f:
-        reader = csv.reader(f)
-        datos = []
-        for i in reader:
-            print(i)
-            datos.append(i)
+class BookManagement:
+    def __init__(self) -> None:
+        self.__filename = 'libros.csv'
+        self.__tempfile = NamedTemporaryFile(mode='w', delete=False)
+        self.__fields = ['ID', 'Titulo', 'Genero', 'ISBN', 'Editorial', 'Autor']
 
-def agregar_libro():
-    with open('libros.csv', 'a', newline='') as f:
-        libro = ingresar_datos()
-        id_auto = str(randint(3,1000))
-        print(id_auto)
-        nuevo_libro = libro.libro_to_list(id_auto)
-        print(nuevo_libro)
-        writer = csv.writer(f)
-        writer.writerow(nuevo_libro)
+    def __generate_id(self):
+        with open(self.__filename) as f:
+            reader = csv.reader(f)
+            *_, last = reader
+            return str(int(last[0]) + 1)
+
+    def exist_book(self, id):
+        with open(self.__filename) as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if id == row[0]:
+                    return True
+            return False
+
+
+    def list_books(self):
+        books = []
+        with open(self.__filename) as f:
+            reader = csv.reader(f)
+            for i in reader:
+                id = i.pop(0)
+                book = FactoryBook.create(*i)
+                book.set_id(id)
+                books.append(book)
+        for book in books:
+            print(book.to_list())
+
+    def add_book(self, book: list):
+        with open(self.__filename, 'a', newline='') as f:
+            writer = csv.writer(f)
+            book = FactoryBook.create(*book)
+            book.set_id(self.__generate_id())
+            writer.writerow(book.to_list())
+
+    def update_book(self, id, book):
+        with open(self.__filename, 'r') as f, self.__tempfile:
+            reader = csv.DictReader(f, fieldnames= self.__fields)
+            writer = csv.DictWriter(self.__tempfile, fieldnames= self.__fields)
+            book = FactoryBook.create(*book)
+            for row in reader:
+                if row['ID'] == id:
+                    row['Titulo'] = book.get_title()
+                    row['Genero'] = book.get_genre()
+                    row['ISBN'] = book.get_ISBN()
+                    row['Editorial'] = book.get_editorial()
+                    row['Autor'] = book.get_authors()
+                row = {
+                    'ID': row['ID'],
+                    'Titulo': row['Titulo'],
+                    'Genero': row['Genero'],
+                    'ISBN': row['ISBN'],
+                    'Editorial': row['Editorial'],
+                    'Autor': row['Autor']
+                }
+                    # row[1] = book.get_title()
+                    # row[2] = book.get_genre()
+                    # row[3] = book.get_ISBN()
+                    # row[4] = book.get_editorial()
+                    # row[5] = book.get_authors()
+                writer.writerow(row)
+        shutil.move(self.__tempfile.name, self.__filename)
+            
+
+
+class FactoryBook:
+    @staticmethod
+    def create(title: str, genre: str, ISBN: str, editorial: str, authors: list):
+        return Book(title, genre, ISBN, editorial, authors)
+
+class Input:
+    @classmethod
+    def input_data(cls, input_text:str, max_length: int, type: str):
+        while True:
+            data = input(input_text)
+            if cls.__validate(data, max_length, type):
+                return data
+
+    @classmethod
+    def __validate(cls, data, max_length, type):
+        if type == 'str':
+            return cls.__validate_str(data, max_length)
+        if type == 'int':
+            return cls.__validate_int(data, max_length)
+        return False
+
+    @classmethod
+    def __validate_str(cls, data:str, max_length: int):
+        return  data != "" and len(data) <= max_length
+
+    @classmethod
+    def __validate_int(cls, data:str, max_length: int):
+        return  data != "" and data.isnumeric() and len(data) <= max_length
+
+
+
+
+def input_data_to_record() -> Book:
+    input = Input()
+    title = input.input_data("Ingrese el nombre del libro: ", 30, 'str')
+    genre = input.input_data("Ingrese el genero del libro: ", 20, 'str')
+    ISBN = input.input_data("Ingrese el ISBN del libro: ", 20, 'str')
+    editorial = input.input_data("Ingrese el editorial del libro: ", 30, 'str')
+    authors_num = int(input.input_data("Ingrese el número de autores: ", 10, 'int'))
+    authors = []
+    for i in range(0, authors_num):
+        authors.append(input.input_data("Ingrese el nombre del autor: ", 30, 'str'))
+    return [title, genre, ISBN, editorial, authors]
+
+def input_id() -> str:
+    return Input.input_data("Ingrese el ID a actualizar: ", 10, 'int')
+
+
 
 def eliminar_libro():
     '''
@@ -149,12 +223,15 @@ def eliminar_libro():
     libros.to_csv('libros.csv',index=False)
 
 def menu():
-    print("menu")
-    listar_libros()
-    agregar_libro()
+    book_management = BookManagement()
+
+    book_management.list_books()
+    #book_management.add_book(input_data_to_record())
+    id = input_id()
+    if book_management.exist_book(id):
+        book_management.update_book(id, input_data_to_record())
+    else:
+        print("No se encontró el libro")
+
 
 menu()
-
-
-libro01 = Libro('Titulo 01', "Accion", "ISBN 01", "Editorial 01", ["Autor 01"])
-libro02 = Libro('Titulo 01', "Accion", "ISBN 01", "Editorial 01", ["Autor 01", "Autor 02", "Autor 03"])
