@@ -1,4 +1,5 @@
 from random import randint
+import pandas as pd
 import csv,os
 os.system("clear")
 
@@ -100,6 +101,52 @@ def agregar_libro():
         print(nuevo_libro)
         writer = csv.writer(f)
         writer.writerow(nuevo_libro)
+
+def eliminar_libro():
+    '''
+    Función que elimina una entrada (fila / row)
+    del archivo libro.csv
+    '''
+    # Cargar libro
+    libros = pd.read_csv('libros.csv')
+    # contador
+    opcion = 1
+    # base de mensaje
+    mensaje = 'Ingrese:'
+    # generando mensaje
+    for i in libros.columns:
+        mensaje += f'\n{opcion} para eliminar por {i}\n'
+        opcion +=1
+    
+    # imprimiendo mensaje
+    columna = int(input(mensaje)) - 1
+    # busco la columna a la cual se refiere
+    columna = libros.columns[columna]
+
+    # buscar valor específico para borrar toda la fila 
+    if columna == libros.columns[0]:
+        id = int(input('Ingrese el ID (debe ser un número) a eliminar:\n'))
+        libros = libros.loc[libros[columna] != id]
+        #        libros.loc[libros[libros.columns[0]] != 1]
+    elif columna ==  libros.columns[1]:
+        titulo = input("Ingrese el título del libro que desea eliminar:\n")
+        libros = libros.loc[libros[columna] != titulo.title()]
+    elif columna == libros.columns[2]:
+        genero = input("Ingrese el género del libro que desea eliminar:\n")
+        libros = libros.loc[libros[columna] != genero.title()]
+    elif columna == libros.columns[3]:
+        isbn = input("Ingrese ISBN del libro que desea eliminar:\n")
+        #creo que el csv['ISBN'] debe tener sólo el código isbn mas no empezar con ISBN..
+        libros = libros.loc[libros[columna] != isbn.upper()]
+    elif columna == libros.columns[4]:
+        editorial = input("Ingrese la editorial del libro que desea eliminar:\n")
+        libros = libros.loc[libros[columna] != editorial.title()]
+    elif columna == libros.columns[5]:
+        autor = input("Ingrese el autor del libro que desea eliminar:\n")
+        libros = libros.loc[libros[columna] != autor.title()]
+    
+    # guardar libro modificado
+    libros.to_csv('libros.csv',index=False)
 
 def menu():
     print("menu")
