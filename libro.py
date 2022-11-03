@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-from random import randint
-import pandas as pd
-import csv,os
-=======
 from tempfile import NamedTemporaryFile
 import shutil, csv, os
->>>>>>> main
+import pandas as pd
 os.system("clear")
 
 class Book:
