@@ -70,10 +70,12 @@ class BookManagement:
         self.__read = False
 
     def __generate_id(self):
-        with open(self.__filename) as f:
-            reader = csv.reader(f)
-            *_, last = reader
-            return str(int(last[0]) + 1)
+        return str(int(self.__books[-1].get_id()) + 1)
+            
+        # with open(self.__filename) as f:
+        #     reader = csv.reader(f)
+        #     *_, last = reader
+        #     return str(int(last[0]) + 1)
 
     def exist_book(self, id):
         with open(self.__filename) as f:
@@ -86,6 +88,8 @@ class BookManagement:
     def read_file(self):
         with open(self.__filename) as f:
             reader = csv.reader(f)
+            if not self.__read:
+                self.__books = []
             for i in reader:
                 print(i)
                 if not self.__read:
@@ -96,23 +100,13 @@ class BookManagement:
             self.__read = True
 
     def list_books(self):
-        books = []
-        with open(self.__filename) as f:
-            reader = csv.reader(f)
-            for i in reader:
-                id = i.pop(0)
-                book = FactoryBook.create(*i)
-                book.set_id(id)
-                books.append(book)
-        for book in books:
+        for book in self.__books:
             print(book.to_list())
 
     def add_book(self, book: list):
-        with open(self.__filename, 'a', newline='') as f:
-            writer = csv.writer(f)
-            book = FactoryBook.create(*book)
-            book.set_id(self.__generate_id())
-            writer.writerow(book.to_list())
+        book = FactoryBook.create(*book)
+        book.set_id(self.__generate_id())
+        self.__books.append(book)
 
     def update_book(self, id, book):
         with open(self.__filename, 'r') as f, self.__tempfile:
@@ -125,8 +119,15 @@ class BookManagement:
                     row = book.to_dict(self.__fields)
                 writer.writerow(row)
         shutil.move(self.__tempfile.name, self.__filename)
+    
+    def save_changes(self):
+        with open(self.__filename, 'w') as file:
+            writer = csv.writer(file, lineterminator='\n')
+            for book in self.__books:
+                print(book.to_list())
+                writer.writerow(book.to_list())
+            self.__read = False
             
-
 
 class FactoryBook:
     @staticmethod
@@ -156,8 +157,6 @@ class Input:
     @classmethod
     def __validate_int(cls, data:str, max_length: int):
         return  data != "" and data.isnumeric() and len(data) <= max_length
-
-
 
 
 def input_data_to_record() -> Book:
@@ -213,6 +212,7 @@ def switch(case, book_management):
             print("No se encontró el libro")
         return
     elif case == 10:
+        book_management.save_changes()
         return
 
 def print_options(options):
@@ -246,7 +246,7 @@ def main():
             print("\nSaliendo de la aplicación...")    
             break
         print("\nRegresando al menú principal...\tEspere 10 segundos...\n")
-        time.sleep(10)
+        time.sleep(1)
         case = 11
 
 
