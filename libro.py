@@ -67,37 +67,30 @@ class BookManagement:
         self.__tempfile = NamedTemporaryFile(mode='w', delete=False)
         self.__fields = ['ID', 'Titulo', 'Genero', 'ISBN', 'Editorial', 'Autor']
         self.__books = []
-        self.__read = False
+        self.read = False
 
     def __generate_id(self):
         return str(int(self.__books[-1].get_id()) + 1)
-            
-        # with open(self.__filename) as f:
-        #     reader = csv.reader(f)
-        #     *_, last = reader
-        #     return str(int(last[0]) + 1)
 
     def exist_book(self, id):
-        with open(self.__filename) as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if id == row[0]:
-                    return True
-            return False
+        for book in self.__books:
+            if book.get_id() == id:
+                return True
+        return False
 
     def read_file(self):
         with open(self.__filename) as f:
             reader = csv.reader(f)
-            if not self.__read:
+            if not self.read:
                 self.__books = []
             for i in reader:
                 print(i)
-                if not self.__read:
+                if not self.read:
                     id = i.pop(0)
                     book = FactoryBook.create(*i)
                     book.set_id(id)
                     self.__books.append(book)
-            self.__read = True
+            self.read = True
 
     def list_books(self):
         for book in self.__books:
@@ -108,25 +101,21 @@ class BookManagement:
         book.set_id(self.__generate_id())
         self.__books.append(book)
 
-    def update_book(self, id, book):
-        with open(self.__filename, 'r') as f, self.__tempfile:
-            reader = csv.DictReader(f, fieldnames= self.__fields)
-            writer = csv.DictWriter(self.__tempfile, fieldnames= self.__fields)
-            book = FactoryBook.create(*book)
-            book.set_id(id)
-            for row in reader:
-                if row['ID'] == id:
-                    row = book.to_dict(self.__fields)
-                writer.writerow(row)
-        shutil.move(self.__tempfile.name, self.__filename)
+    def update_book(self, id, book_update):
+        i = 0
+        for book in self.__books:
+            if book.get_id() == id:
+                book_update = FactoryBook.create(*book_update)
+                book_update.set_id(id)
+                self.__books[i] = book_update
+            i += 1
     
     def save_changes(self):
         with open(self.__filename, 'w') as file:
             writer = csv.writer(file, lineterminator='\n')
             for book in self.__books:
-                print(book.to_list())
                 writer.writerow(book.to_list())
-            self.__read = False
+            self.read = False
             
 
 class FactoryBook:
@@ -176,17 +165,18 @@ def input_id() -> str:
 
 
 
-# Opción 1: Leer archivo de disco duro (.txt o csv) que cargue 3 libros.
 # Opción 4: Eliminar libro.
 # Opción 5: Buscar libro por ISBN o por título. Se debe sugerir las opciones y listar el resultado.
 # Opción 6: Ordenar libros por título.
 # Opción 7: Buscar libros por autor, editorial o género. Se deben sugerir las opciones y listar los resultados.
 # Opción 8: Buscar libros por número de autores. Se debe ingresar un número por ejemplo 2 (hace referencia a dos autores) y se deben listar todos los libros que contengan 2 autores.
-# Opción 10: Guardar libros en archivo de disco duro (.txt o csv).
 
 def switch(case, book_management):
     if case == 1:
         book_management.read_file()
+        return
+    elif book_management.read == False and case != 0:
+        print("Tienes que leer el archivo (Opción 1) para poder elegir las opciones!")
         return
     elif case == 2:
         book_management.list_books()
@@ -213,7 +203,9 @@ def switch(case, book_management):
         return
     elif case == 10:
         book_management.save_changes()
+        print("Guardado exitoso!")
         return
+    
 
 def print_options(options):
     for option in options:
@@ -248,7 +240,6 @@ def main():
         print("\nRegresando al menú principal...\tEspere 10 segundos...\n")
         time.sleep(1)
         case = 11
-
 
 
 main()
