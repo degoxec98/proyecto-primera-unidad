@@ -121,37 +121,98 @@ class BookManagement:
         del archivo libro.csv
         '''
         input = Input()
+
         # Cargar libro
-        libros = pd.read_csv(self.__filename)
+        book = pd.read_csv(self.__filename)
+
         # contador
-        opcion = 1
+        option = 1
+
         # base de mensaje
-        mensaje = 'Ingrese:'
+        message = 'Ingrese:'
+
         # generando mensaje
-        for i in libros.columns[[0,1,3]]:
-            mensaje += f'\n{opcion} para eliminar por {i}\n'
-            opcion +=1
+        for i in book.columns[[0,1,3]]:
+            message += f'\n{option} para eliminar por {i}\n'
+            option +=1
+
         # imprimiendo mensaje
-        columna = int(input(mensaje)) - 1
-        if columna == 2:
-            columna += 1
-        # busco la columna a la cual se refiere
-        columna = libros.columns[columna]
+        field = int(input.input_data(message,1,'int')) - 1
+
+        if field == 2:
+            field += 1
+
+        # busco el field a la cual se refiere
+        field = book.columns[field]
 
         # buscar valor específico para borrar toda la fila 
-        if columna == libros.columns[0]:
-            id = int(input.input_data('Ingrese el ID a eliminar:\n',20,type='int')) #int(input('Ingrese el ID (debe ser un número) a eliminar:\n'))
-            libros = libros.loc[libros[columna] != id]
-            #        libros.loc[libros[libros.columns[0]] != 1]
-        elif columna ==  libros.columns[1]:
-            titulo = input.input_data('Ingrese el título del libro que desea eliminar:\n',30,type='str')
-            libros = libros.loc[libros[columna] != titulo.title()]
-        elif columna == libros.columns[3]:
-            isbn = input.input_data('Ingrese ISBN del libro que desea eliminar:\n',20,type='str')
-            libros = libros.loc[libros[columna] != isbn.upper()]
+        if field == book.columns[0]:
+            id = int(input.input_data('Ingrese el ID a eliminar:\n',
+                    20,
+                    type = 'int'))
+
+            book = book.loc[book[field] != id]
+            
+        elif field ==  book.columns[1]:
+            title = input.input_data('Ingrese el título del libro que desea eliminar:\n',
+                                    30,
+                                    type = 'str')
+
+            book = book.loc[book[field] != title.capitalize()]
+
+        elif field == book.columns[3]:
+            isbn = input.input_data('Ingrese ISBN del libro que desea eliminar:\n',
+                                    20,
+                                    type='str')
+
+            book = book.loc[book[field] != isbn.upper()]
         
         # guardar libro modificado
-        libros.to_csv(self.__filename,index=False)
+        book.to_csv(self.__filename,index=False)
+    
+    # Opción 5: Buscar libro por ISBN o por título. Se debe sugerir las opciones y listar el resultado.
+    def find_book(self):
+        input = Input()
+        excec = False
+        
+        while True:
+            print('--- Buscar libro ---')
+            for k, v in dict({'Titulo':1,'ISBN':2}).items():
+                print(f'Ingrese {v} para buscar por {k}')
+            field = int(input.input_data('',1,'int'))
+            if field in [1,2]:
+                if field == 2:
+                    field = 3
+                break
+            else: print('Ingrese un valor válido.\n')
+        # while excec == False:
+        book = pd.read_csv(self.__filename)
+
+        field = book.columns[field]
+        if field == book.columns[1]:
+            while True:
+                title = input.input_data('Ingrese el titulo del libro que desea buscar:\n',30,'str').capitalize()
+                if title in list(book[field]):
+                    print(book.loc[book[field] == title])
+                    break
+                print('El título no coincide con los almacenados en el archivo.')
+        else:
+            while True:
+                isbn = input.input_data('Ingrese el ISBN del libro que desea buscar:\n',20,'str').upper()
+                if isbn in list(book[field]):
+                    print(book.loc[book[field] == isbn])
+                    break
+                print('El título no coincide con los almacenados en el archivo.')
+        
+
+        # print(field) # para visualizar.. luego eliminar
+
+
+        # return book
+
+    # Opción 6: Ordenar libros por título.
+    # Opción 7: Buscar libros por autor, editorial o género. Se deben sugerir las opciones y listar los resultados.
+    # Opción 8: Buscar libros por número de autores. Se debe ingresar un número por ejemplo 2 (hace referencia a dos autores) y se deben listar todos los libros que contengan 2 autores.
             
 
 class FactoryBook:
@@ -214,7 +275,8 @@ def menu():
     # else:
     #     print("No se encontró el libro")
 
-    book_management.delete_book()
+    # book_management.delete_book()
+    book_management.find_book()
 
 
 menu()
