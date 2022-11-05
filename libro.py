@@ -170,10 +170,9 @@ class BookManagement:
         # guardar libro modificado
         book.to_csv(self.__filename,index=False)
     
-    # Opción 5: Buscar libro por ISBN o por título. Se debe sugerir las opciones y listar el resultado.
-    def find_book(self):
+
+    def find_by_tit_isbn(self):
         input = Input()
-        excec = False
         
         while True:
             print('--- Buscar libro ---')
@@ -185,7 +184,7 @@ class BookManagement:
                     field = 3
                 break
             else: print('Ingrese un valor válido.\n')
-        # while excec == False:
+
         book = pd.read_csv(self.__filename)
 
         field = book.columns[field]
@@ -204,16 +203,86 @@ class BookManagement:
                     break
                 print('El título no coincide con los almacenados en el archivo.')
         
-
-        # print(field) # para visualizar.. luego eliminar
-
-
-        # return book
-
     # Opción 6: Ordenar libros por título.
+    def sort_by_title(self):
+        print('---Ordenando por título---')
+        book = pd.read_csv(self.__filename)
+        title = book.columns[1]
+        print(book.sort_values(by=[title]))
+
     # Opción 7: Buscar libros por autor, editorial o género. Se deben sugerir las opciones y listar los resultados.
+    def find_by_gen_auth_editor(self):
+        input = Input()
+        
+        while True:
+            print('--- Buscar libro por autor o editorial ---')
+            for k, v in dict({'Genero':1,'Editorial':2,'Autor':3}).items():
+                print(f'Ingrese {v} para buscar por {k}')
+            field = int(input.input_data('',1,'int'))
+            if field in [1,2,3]:
+                if field == 1:
+                    field = 2
+                elif field == 2:
+                    field = 4
+                else: field = 5
+                break
+            else: print('Ingrese un valor válido.\n')
+
+        book = pd.read_csv(self.__filename)
+
+        field = book.columns[field]
+        if field == book.columns[2]:
+            while True:
+                genre = input.input_data('Ingrese el genero del libro que desea buscar:\n',30,'str').capitalize()
+                if genre in list(book[field]):
+                    print(book.loc[book[field] == genre])
+                    break
+                print('El género no coincide con los almacenados en el archivo.')
+        elif field == book.columns[4]:
+            while True:
+                editorial = input.input_data('Ingrese la editorial del libro que desea buscar:\n',30,'str').capitalize()
+                if editorial in list(book[field]):
+                    print(book.loc[book[field] == editorial])
+                    break
+                print('La editorial no coincide con los almacenados en el archivo.')
+        else:
+            while True:
+                author = input.input_data('Ingrese el autor del libro que desea buscar:\n',20,'str').capitalize()
+                position = 0
+                coincidencia = 0
+                for i in book['Autor'].str.contains(author):
+                    if i:
+                        print(book[book['Autor'].str.contains('Autor 01')].iloc[[position]])
+                        coincidencia += 1
+                    position += 1
+                if coincidencia != 0:
+                    break
+                else:
+                    print('No se encuentra el autor que especifica.')
+                
     # Opción 8: Buscar libros por número de autores. Se debe ingresar un número por ejemplo 2 (hace referencia a dos autores) y se deben listar todos los libros que contengan 2 autores.
+    def find_by_number_of_authors(self):
+        input = Input()
+        book = pd.read_csv(self.__filename)
+
+        while True:
+            print('---Buscar por numero de autores---')
+            num_of_authors = int(input.input_data('Ingrese la cantidad de autores que hayan escrito el libro a buscar:\n',2,'int'))
             
+            num_of_authors -= 1
+            # if book['Autor'].str.count('/|,') != num_of_authors:
+            #Falta ver qué mensaje se manda cuando no hay el numero de autores que se quiere
+            print(book.loc[ book['Autor'].str.count('/|,') == num_of_authors])
+            break
+
+            # for i in book['Autor'].str.count('/|,'):
+            #     if i == num_of_authors:
+            #         pass
+
+
+
+# df = df[df['Credit-Rating'].str.contains('Fair')]
+# print(df)
 
 class FactoryBook:
     @staticmethod
@@ -276,7 +345,10 @@ def menu():
     #     print("No se encontró el libro")
 
     # book_management.delete_book()
-    book_management.find_book()
+    # book_management.find_book()
+    # book_management.sort_by_title()
+    # book_management.find_by_gen_auth_editor()
+    book_management.find_by_number_of_authors()
 
 
 menu()
