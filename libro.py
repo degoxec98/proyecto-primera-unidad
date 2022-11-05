@@ -1,5 +1,5 @@
 from tempfile import NamedTemporaryFile
-import shutil, csv, os
+import shutil, csv, time, os
 os.system("clear")
 
 class Book:
@@ -66,6 +66,8 @@ class BookManagement:
         self.__filename = 'libros.csv'
         self.__tempfile = NamedTemporaryFile(mode='w', delete=False)
         self.__fields = ['ID', 'Titulo', 'Genero', 'ISBN', 'Editorial', 'Autor']
+        self.__books = []
+        self.__read = False
 
     def __generate_id(self):
         with open(self.__filename) as f:
@@ -81,6 +83,17 @@ class BookManagement:
                     return True
             return False
 
+    def read_file(self):
+        with open(self.__filename) as f:
+            reader = csv.reader(f)
+            for i in reader:
+                print(i)
+                if not self.__read:
+                    id = i.pop(0)
+                    book = FactoryBook.create(*i)
+                    book.set_id(id)
+                    self.__books.append(book)
+            self.__read = True
 
     def list_books(self):
         books = []
@@ -164,16 +177,78 @@ def input_id() -> str:
 
 
 
-def menu():
+# Opción 1: Leer archivo de disco duro (.txt o csv) que cargue 3 libros.
+# Opción 4: Eliminar libro.
+# Opción 5: Buscar libro por ISBN o por título. Se debe sugerir las opciones y listar el resultado.
+# Opción 6: Ordenar libros por título.
+# Opción 7: Buscar libros por autor, editorial o género. Se deben sugerir las opciones y listar los resultados.
+# Opción 8: Buscar libros por número de autores. Se debe ingresar un número por ejemplo 2 (hace referencia a dos autores) y se deben listar todos los libros que contengan 2 autores.
+# Opción 10: Guardar libros en archivo de disco duro (.txt o csv).
+
+def switch(case, book_management):
+    if case == 1:
+        book_management.read_file()
+        return
+    elif case == 2:
+        book_management.list_books()
+        return
+    elif case == 3:
+        book_management.add_book(input_data_to_record())
+        return 
+    elif case == 4:
+        return
+    elif case == 5:
+        return
+    elif case == 6:
+        return
+    elif case == 7:
+        return
+    elif case == 8:
+        return
+    elif case == 9:
+        id = input_id()
+        if book_management.exist_book(id):
+            book_management.update_book(id, input_data_to_record())
+        else:
+            print("No se encontró el libro")
+        return
+    elif case == 10:
+        return
+
+def print_options(options):
+    for option in options:
+        print(option)
+    print(" ")
+
+def main():
+    options = [
+        "Opción 1: Leer archivo actual",
+        "Opción 2: Listar libros",
+        "Opción 3: Agregar libro",
+        "Opción 4: Eliminar libro",
+        "Opción 5: Buscar libro por ISBN o por título",
+        "Opción 6: Ordenar libros por título",
+        "Opción 7: Buscar libros por autor, editorial o género",
+        "Opción 8: Buscar libros por número de autores",
+        "Opción 9: Actualizar datos de un libro",
+        "Opción 10: Guardar Cambios",
+        "Opción 0: Salir"
+    ]
     book_management = BookManagement()
+    index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    case = 11
+    while True:
+        print_options(options)
+        while case not in index: 
+            case = int(Input.input_data("Ingrese la opción: ", 3, 'int'))
+        switch(case, book_management)
+        if case == 0:
+            print("\nSaliendo de la aplicación...")    
+            break
+        print("\nRegresando al menú principal...\tEspere 10 segundos...\n")
+        time.sleep(10)
+        case = 11
 
-    book_management.list_books()
-    #book_management.add_book(input_data_to_record())
-    id = input_id()
-    if book_management.exist_book(id):
-        book_management.update_book(id, input_data_to_record())
-    else:
-        print("No se encontró el libro")
 
 
-menu()
+main()
