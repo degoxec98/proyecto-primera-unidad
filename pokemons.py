@@ -62,7 +62,7 @@ class Request:
     def __show_some_abilities(self, results):
         i = 0
         options = []
-        print("Eliga una de las siguientes habilidades")
+        print("Elija una de las siguientes habilidades")
         for result in results:
             print(f'Opcion {i}: {result["name"]}')
             options.append(i)
@@ -76,7 +76,35 @@ class Request:
             payload = response.json()
             results = payload.get('results', [])
             return self.__show_some_abilities(results)
-            
+    
+    def __show_some_habitats(self, results):
+        i = 0
+        options = []
+        print("Elija una de los siguientes habitats")
+        for result in results:
+            print(f'Opcion {i}: {result["name"]}')
+            options.append(i)
+            i += 1
+        return options
+    
+    def get_some_habitats(self):
+        url = f'https://pokeapi.co/api/v2/pokemon-habitat'
+        response = requests.get(url)
+        if response.status_code == 200:
+            payload = response.json()
+            results = payload.get('results',[])
+            return self.__show_some_habitats(results)
+
+    def pokemons_by_habitat(self, id: str):
+        url = f'https://pokeapi.co/api/v2/pokemon-habitat/{id}'
+        payload = self.__make_request(url)
+        results = payload.get('pokemon_species', [])
+        urls = []
+        for pokemon in results:
+            urls.append(self.__build_pokemon_url(pokemon["name"]))
+        self.__get_pokemons(urls)
+    
+
 
 class Input:
     @classmethod
@@ -121,8 +149,16 @@ def switch(case, request):
         request.pokemons_by_ability(str(op + 1))
         return 
     elif case == 4:
+        options = request.get_some_habitats()
+        op = 25
+        while op not in options:
+            op=int(Input.input_data('Ingrese una opción: ',1,'int'))
+        request.pokemons_by_habitat(str(op + 1))
         return
     elif case == 5:
+        i, results = request.all_pokemons_type()
+        number = int(Input.input_data(f'Sugerencia: Ingrese un numero en el intervalo del 1 al {i}: ',2,'int'))
+        request.pokemons_by_type(results[number-1]['url'])
         return
     
 
