@@ -1,3 +1,4 @@
+
 #from libro import Input
 import requests, time, concurrent.futures
 start = time.time()
@@ -142,7 +143,6 @@ def main():
     
     request = Request()
 
-
     index = [0, 1, 2, 3, 4, 5]
     case = 6
     while True:
@@ -160,5 +160,7 @@ def main():
 main()
 
 end = time.time()
+
+print(end-start)
 
 print(end-start)

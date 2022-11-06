@@ -1,5 +1,5 @@
 from tempfile import NamedTemporaryFile
-import shutil, csv, os
+import shutil, csv, time, os
 import pandas as pd
 os.system("clear")
 
@@ -67,55 +67,63 @@ class BookManagement:
         self.__filename = 'libros.csv'
         self.__tempfile = NamedTemporaryFile(mode='w', delete=False)
         self.__fields = ['ID', 'Titulo', 'Genero', 'ISBN', 'Editorial', 'Autor']
-        self.__booklist = list()
+        self.__books = []
+        self.read = False
 
     def __generate_id(self):
-        with open(self.__filename) as f:
-            reader = csv.reader(f)
-            *_, last = reader
-            return str(int(last[0]) + 1)
+        return str(int(self.__books[-1].get_id()) + 1)
 
     def exist_book(self, id):
+        for book in self.__books:
+            if book.get_id() == id:
+                return True
+        return False
+
+    def read_file(self):
         with open(self.__filename) as f:
             reader = csv.reader(f)
-            for row in reader:
-                if id == row[0]:
-                    return True
-            return False
-
+            if not self.read:
+                self.__books = []
+            for i in reader:
+                print(i)
+                if not self.read:
+                    id = i.pop(0)
+                    book = FactoryBook.create(*i)
+                    book.set_id(id)
+                    self.__books.append(book)
+            self.read = True
 
     def list_books(self):
-        books = []
-        with open(self.__filename) as f:
-            reader = csv.reader(f)
-            for i in reader:
-                id = i.pop(0)
-                book = FactoryBook.create(*i)
-                book.set_id(id)
-                books.append(book)
-        for book in books:
+        for book in self.__books:
             print(book.to_list())
 
     def add_book(self, book: list):
-        with open(self.__filename, 'a', newline='') as f:
-            writer = csv.writer(f)
-            book = FactoryBook.create(*book)
-            book.set_id(self.__generate_id())
-            writer.writerow(book.to_list())
+        book = FactoryBook.create(*book)
+        book.set_id(self.__generate_id())
+        self.__books.append(book)
 
-    def update_book(self, id, book):
-        with open(self.__filename, 'r') as f, self.__tempfile:
-            reader = csv.DictReader(f, fieldnames= self.__fields)
-            writer = csv.DictWriter(self.__tempfile, fieldnames= self.__fields)
-            book = FactoryBook.create(*book)
-            book.set_id(id)
-            for row in reader:
-                if row['ID'] == id:
-                    row = book.to_dict(self.__fields)
-                writer.writerow(row)
-        shutil.move(self.__tempfile.name, self.__filename)
+    def update_book(self, id, book_update):
+        i = 0
+        for book in self.__books:
+            if book.get_id() == id:
+                book_update = FactoryBook.create(*book_update)
+                book_update.set_id(id)
+                self.__books[i] = book_update
+            i += 1
+    
+    def save_changes(self):
+        with open(self.__filename, 'w') as file:
+            writer = csv.writer(file, lineterminator='\n')
+            for book in self.__books:
+                writer.writerow(book.to_list())
+            self.read = False
+
+
+# ------------------------------------------
     
     def delete_book(self):
+        self.save_changes()
+
         '''
         Función que elimina una entrada (fila / row)
         del archivo libro.csv
@@ -164,14 +172,17 @@ class BookManagement:
             isbn = input.input_data('Ingrese ISBN del libro que desea eliminar:\n',
                                     20,
                                     type='str')
-
             book = book.loc[book[field] != isbn.upper()]
         
         # guardar libro modificado
         book.to_csv(self.__filename,index=False)
+
+        print("Se eliminó directamente en libros.csv")
+        print("Por favor vuelva a leer el archivo eligiendo la opcion 01")
     
 
     def find_by_tit_isbn(self):
+        self.save_changes()
         input = Input()
         
         while True:
@@ -202,16 +213,23 @@ class BookManagement:
                     print(book.loc[book[field] == isbn])
                     break
                 print('El título no coincide con los almacenados en el archivo.')
+        print("\nConsulta realizada!")
+        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
+        
         
     # Opción 6: Ordenar libros por título.
     def sort_by_title(self):
+        self.save_changes()
         print('---Ordenando por título---')
         book = pd.read_csv(self.__filename)
         title = book.columns[1]
         print(book.sort_values(by=[title]))
+        print("\nConsulta realizada!")
+        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
 
     # Opción 7: Buscar libros por autor, editorial o género. Se deben sugerir las opciones y listar los resultados.
     def find_by_gen_auth_editor(self):
+        self.save_changes()
         input = Input()
         
         while True:
@@ -259,9 +277,12 @@ class BookManagement:
                     break
                 else:
                     print('No se encuentra el autor que especifica.')
+        print("\nConsulta realizada!")
+        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
                 
     # Opción 8: Buscar libros por número de autores. Se debe ingresar un número por ejemplo 2 (hace referencia a dos autores) y se deben listar todos los libros que contengan 2 autores.
     def find_by_number_of_authors(self):
+        self.save_changes()
         input = Input()
         book = pd.read_csv(self.__filename)
 
@@ -270,19 +291,12 @@ class BookManagement:
             num_of_authors = int(input.input_data('Ingrese la cantidad de autores que hayan escrito el libro a buscar:\n',2,'int'))
             
             num_of_authors -= 1
-            # if book['Autor'].str.count('/|,') != num_of_authors:
-            #Falta ver qué mensaje se manda cuando no hay el numero de autores que se quiere
             print(book.loc[ book['Autor'].str.count('/|,') == num_of_authors])
             break
 
-            # for i in book['Autor'].str.count('/|,'):
-            #     if i == num_of_authors:
-            #         pass
+        print("\nConsulta realizada!")
+        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
 
-
-
-# df = df[df['Credit-Rating'].str.contains('Fair')]
-# print(df)
 
 class FactoryBook:
     @staticmethod
@@ -314,8 +328,6 @@ class Input:
         return  data != "" and data.isnumeric() and len(data) <= max_length
 
 
-
-
 def input_data_to_record() -> Book:
     input = Input()
     title = input.input_data("Ingrese el nombre del libro: ", 30, 'str')
@@ -332,23 +344,80 @@ def input_id() -> str:
     return Input.input_data("Ingrese el ID a actualizar: ", 10, 'int')
 
 
+def switch(case, book_management):
+    if case == 1:
+        book_management.read_file()
+        return
+    elif book_management.read == False and case != 0:
+        print("Tienes que leer el archivo (Opción 1) para poder elegir las opciones!")
+        return
+    elif case == 2:
+        book_management.list_books()
+        return
+    elif case == 3:
+        book_management.add_book(input_data_to_record())
+        return 
+    elif case == 4:
+        book_management.delete_book()
+        return
+    elif case == 5:
+        book_management.find_by_tit_isbn()
+        return
+    elif case == 6:
+        book_management.sort_by_title()
+        return
+    elif case == 7:
+        book_management.find_by_gen_auth_editor()
+        return
+    elif case == 8:
+        book_management.find_by_number_of_authors()
+        return
+    elif case == 9:
+        id = input_id()
+        if book_management.exist_book(id):
+            book_management.update_book(id, input_data_to_record())
+        else:
+            print("No se encontró el libro")
+        return
+    elif case == 10:
+        book_management.save_changes()
+        print("Guardado exitoso!")
+        return
+    
 
-def menu():
+def print_options(options):
+    for option in options:
+        print(option)
+    print(" ")
+
+def main():
+    options = [
+        "Opción 1: Leer archivo actual",
+        "Opción 2: Listar libros",
+        "Opción 3: Agregar libro",
+        "Opción 4: Eliminar libro",
+        "Opción 5: Buscar libro por ISBN o por título",
+        "Opción 6: Ordenar libros por título",
+        "Opción 7: Buscar libros por autor, editorial o género",
+        "Opción 8: Buscar libros por número de autores",
+        "Opción 9: Actualizar datos de un libro",
+        "Opción 10: Guardar Cambios",
+        "Opción 0: Salir"
+    ]
     book_management = BookManagement()
+    index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    case = 11
+    while True:
+        print_options(options)
+        while case not in index: 
+            case = int(Input.input_data("Ingrese la opción: ", 3, 'int'))
+        switch(case, book_management)
+        if case == 0:
+            print("\nSaliendo de la aplicación...")    
+            break
+        print("\nRegresando al menú principal...\tEspere 10 segundos...\n")
+        time.sleep(1)
+        case = 11
 
-    # book_management.list_books()
-    # #book_management.add_book(input_data_to_record())
-    # id = input_id()
-    # if book_management.exist_book(id):
-    #     book_management.update_book(id, input_data_to_record())
-    # else:
-    #     print("No se encontró el libro")
 
-    # book_management.delete_book()
-    # book_management.find_book()
-    # book_management.sort_by_title()
-    # book_management.find_by_gen_auth_editor()
-    book_management.find_by_number_of_authors()
-
-
-menu()
+main()
