@@ -143,7 +143,6 @@ def main():
     
     request = Request()
 
-
     index = [0, 1, 2, 3, 4, 5]
     case = 6
     while True:
