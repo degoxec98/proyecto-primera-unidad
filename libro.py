@@ -1,5 +1,6 @@
 from tempfile import NamedTemporaryFile
 import shutil, csv, time, os
+import pandas as pd
 os.system("clear")
 
 class Book:
@@ -116,7 +117,186 @@ class BookManagement:
             for book in self.__books:
                 writer.writerow(book.to_list())
             self.read = False
+
+
+# ------------------------------------------
+    
+    def delete_book(self):
+        self.save_changes()
+
+        '''
+        Función que elimina una entrada (fila / row)
+        del archivo libro.csv
+        '''
+        input = Input()
+
+        # Cargar libro
+        book = pd.read_csv(self.__filename)
+
+        # contador
+        option = 1
+
+        # base de mensaje
+        message = 'Ingrese:'
+
+        # generando mensaje
+        for i in book.columns[[0,1,3]]:
+            message += f'\n{option} para eliminar por {i}\n'
+            option +=1
+
+        # imprimiendo mensaje
+        field = int(input.input_data(message,1,'int')) - 1
+
+        if field == 2:
+            field += 1
+
+        # busco el field a la cual se refiere
+        field = book.columns[field]
+
+        # buscar valor específico para borrar toda la fila 
+        if field == book.columns[0]:
+            id = int(input.input_data('Ingrese el ID a eliminar:\n',
+                    20,
+                    type = 'int'))
+
+            book = book.loc[book[field] != id]
             
+        elif field ==  book.columns[1]:
+            title = input.input_data('Ingrese el título del libro que desea eliminar:\n',
+                                    30,
+                                    type = 'str')
+
+            book = book.loc[book[field] != title.capitalize()]
+
+        elif field == book.columns[3]:
+            isbn = input.input_data('Ingrese ISBN del libro que desea eliminar:\n',
+                                    20,
+                                    type='str')
+            book = book.loc[book[field] != isbn.upper()]
+        
+        # guardar libro modificado
+        book.to_csv(self.__filename,index=False)
+
+        print("Se eliminó directamente en libros.csv")
+        print("Por favor vuelva a leer el archivo eligiendo la opcion 01")
+    
+
+    def find_by_tit_isbn(self):
+        self.save_changes()
+        input = Input()
+        
+        while True:
+            print('--- Buscar libro ---')
+            for k, v in dict({'Titulo':1,'ISBN':2}).items():
+                print(f'Ingrese {v} para buscar por {k}')
+            field = int(input.input_data('',1,'int'))
+            if field in [1,2]:
+                if field == 2:
+                    field = 3
+                break
+            else: print('Ingrese un valor válido.\n')
+
+        book = pd.read_csv(self.__filename)
+
+        field = book.columns[field]
+        if field == book.columns[1]:
+            while True:
+                title = input.input_data('Ingrese el titulo del libro que desea buscar:\n',30,'str').capitalize()
+                if title in list(book[field]):
+                    print(book.loc[book[field] == title])
+                    break
+                print('El título no coincide con los almacenados en el archivo.')
+        else:
+            while True:
+                isbn = input.input_data('Ingrese el ISBN del libro que desea buscar:\n',20,'str').upper()
+                if isbn in list(book[field]):
+                    print(book.loc[book[field] == isbn])
+                    break
+                print('El título no coincide con los almacenados en el archivo.')
+        print("\nConsulta realizada!")
+        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
+        
+        
+    # Opción 6: Ordenar libros por título.
+    def sort_by_title(self):
+        self.save_changes()
+        print('---Ordenando por título---')
+        book = pd.read_csv(self.__filename)
+        title = book.columns[1]
+        print(book.sort_values(by=[title]))
+        print("\nConsulta realizada!")
+        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
+
+    # Opción 7: Buscar libros por autor, editorial o género. Se deben sugerir las opciones y listar los resultados.
+    def find_by_gen_auth_editor(self):
+        self.save_changes()
+        input = Input()
+        
+        while True:
+            print('--- Buscar libro por autor o editorial ---')
+            for k, v in dict({'Genero':1,'Editorial':2,'Autor':3}).items():
+                print(f'Ingrese {v} para buscar por {k}')
+            field = int(input.input_data('',1,'int'))
+            if field in [1,2,3]:
+                if field == 1:
+                    field = 2
+                elif field == 2:
+                    field = 4
+                else: field = 5
+                break
+            else: print('Ingrese un valor válido.\n')
+
+        book = pd.read_csv(self.__filename)
+
+        field = book.columns[field]
+        if field == book.columns[2]:
+            while True:
+                genre = input.input_data('Ingrese el genero del libro que desea buscar:\n',30,'str').capitalize()
+                if genre in list(book[field]):
+                    print(book.loc[book[field] == genre])
+                    break
+                print('El género no coincide con los almacenados en el archivo.')
+        elif field == book.columns[4]:
+            while True:
+                editorial = input.input_data('Ingrese la editorial del libro que desea buscar:\n',30,'str').capitalize()
+                if editorial in list(book[field]):
+                    print(book.loc[book[field] == editorial])
+                    break
+                print('La editorial no coincide con los almacenados en el archivo.')
+        else:
+            while True:
+                author = input.input_data('Ingrese el autor del libro que desea buscar:\n',20,'str').capitalize()
+                position = 0
+                coincidencia = 0
+                for i in book['Autor'].str.contains(author):
+                    if i:
+                        print(book[book['Autor'].str.contains('Autor 01')].iloc[[position]])
+                        coincidencia += 1
+                    position += 1
+                if coincidencia != 0:
+                    break
+                else:
+                    print('No se encuentra el autor que especifica.')
+        print("\nConsulta realizada!")
+        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
+                
+    # Opción 8: Buscar libros por número de autores. Se debe ingresar un número por ejemplo 2 (hace referencia a dos autores) y se deben listar todos los libros que contengan 2 autores.
+    def find_by_number_of_authors(self):
+        self.save_changes()
+        input = Input()
+        book = pd.read_csv(self.__filename)
+
+        while True:
+            print('---Buscar por numero de autores---')
+            num_of_authors = int(input.input_data('Ingrese la cantidad de autores que hayan escrito el libro a buscar:\n',2,'int'))
+            
+            num_of_authors -= 1
+            print(book.loc[ book['Autor'].str.count('/|,') == num_of_authors])
+            break
+
+        print("\nConsulta realizada!")
+        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
+
 
 class FactoryBook:
     @staticmethod
@@ -164,13 +344,6 @@ def input_id() -> str:
     return Input.input_data("Ingrese el ID a actualizar: ", 10, 'int')
 
 
-
-# Opción 4: Eliminar libro.
-# Opción 5: Buscar libro por ISBN o por título. Se debe sugerir las opciones y listar el resultado.
-# Opción 6: Ordenar libros por título.
-# Opción 7: Buscar libros por autor, editorial o género. Se deben sugerir las opciones y listar los resultados.
-# Opción 8: Buscar libros por número de autores. Se debe ingresar un número por ejemplo 2 (hace referencia a dos autores) y se deben listar todos los libros que contengan 2 autores.
-
 def switch(case, book_management):
     if case == 1:
         book_management.read_file()
@@ -185,14 +358,19 @@ def switch(case, book_management):
         book_management.add_book(input_data_to_record())
         return 
     elif case == 4:
+        book_management.delete_book()
         return
     elif case == 5:
+        book_management.find_by_tit_isbn()
         return
     elif case == 6:
+        book_management.sort_by_title()
         return
     elif case == 7:
+        book_management.find_by_gen_auth_editor()
         return
     elif case == 8:
+        book_management.find_by_number_of_authors()
         return
     elif case == 9:
         id = input_id()
