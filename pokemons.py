@@ -104,6 +104,32 @@ class Request:
             urls.append(self.__build_pokemon_url(pokemon["name"]))
         self.__get_pokemons(urls)
     
+    def pokemons_by_types(self, id: str):
+        url = f'https://pokeapi.co/api/v2/type/{id}'
+        payload = self.__make_request(url)
+        results = payload.get('pokemon', [])
+        urls = []
+        for result in results:
+            urls.append(self.__build_pokemon_url(result["pokemon"]["name"]))
+        self.__get_pokemons(urls)
+
+    def __show_some_types(self, results):
+        i = 0
+        options = []
+        print("Elija una de los siguientes tipos")
+        for result in results:
+            print(f'Opcion {i}: {result["name"]}')
+            options.append(i)
+            i += 1
+        return options
+
+    def get_some_types(self):
+        url = f'https://pokeapi.co/api/v2/type/?limit=20'
+        response = requests.get(url)
+        if response.status_code == 200:
+            payload = response.json()
+            results = payload.get('results', [])
+            return self.__show_some_types(results)
 
 
 class Input:
@@ -155,11 +181,13 @@ def switch(case, request):
             op=int(Input.input_data('Ingrese una opción: ',1,'int'))
         request.pokemons_by_habitat(str(op + 1))
         return
-    elif case == 5:
-        i, results = request.all_pokemons_type()
-        number = int(Input.input_data(f'Sugerencia: Ingrese un numero en el intervalo del 1 al {i}: ',2,'int'))
-        request.pokemons_by_type(results[number-1]['url'])
-        return
+    elif case == 5:        
+        options = request.get_some_types()
+        op = 25
+        while op not in options:
+            op = int(Input.input_data('Ingrese una opcion: ', 3, 'int'))
+        request.pokemons_by_types(str(op + 1))
+        return 
     
 
 def print_options(options):
