@@ -3,7 +3,7 @@
 
 ## Integrantes:
 - Enriquez Diego
-- Gavilan Abanto
+- Gavilan Maby
 
 ## Packages necesarios:
 
