@@ -2,3 +2,5 @@ ID,Titulo,Genero,ISBN,Editorial,Autor
 1,Titulo 01,Accion,ISBN 01,Editorial 01,"['Autor 01', 'Autor 02']"
 2,Titulo 02v2,Dramav2,ISBN 02v2,Editorial 01v2,"['Autor 01v2', 'Autor 02v2', 'Autor 03v2']"
 3,Titulo 03,Comedia,ISBN 03,Editorial 03,['Autor 01']
+4,Titulo 04,drama,ISBN 04,Editorial 04,"['Autor 04-1', 'Autor 04-2']"
+5,Abc Titulo,comedia,ISBN 05,Editorial 05,['Autor 05']

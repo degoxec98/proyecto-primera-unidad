@@ -79,19 +79,21 @@ class BookManagement:
                 return True
         return False
 
-    def read_file(self):
+    def read_file(self, read_and_print=True):
         with open(self.__filename) as f:
             reader = csv.reader(f)
             if not self.read:
                 self.__books = []
             for i in reader:
-                print(i)
+                if read_and_print:
+                    print(i)
                 if not self.read:
                     id = i.pop(0)
                     book = FactoryBook.create(*i)
                     book.set_id(id)
                     self.__books.append(book)
             self.read = True
+
 
     def list_books(self):
         for book in self.__books:
@@ -178,8 +180,7 @@ class BookManagement:
         book.to_csv(self.__filename,index=False)
 
         print("Se eliminó directamente en libros.csv")
-        print("Por favor vuelva a leer el archivo eligiendo la opcion 01")
-    
+
 
     def find_by_tit_isbn(self):
         self.save_changes()
@@ -214,8 +215,7 @@ class BookManagement:
                     break
                 print('El título no coincide con los almacenados en el archivo.')
         print("\nConsulta realizada!")
-        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
-        
+                
         
     # Opción 6: Ordenar libros por título.
     def sort_by_title(self):
@@ -225,7 +225,7 @@ class BookManagement:
         title = book.columns[1]
         print(book.sort_values(by=[title]))
         print("\nConsulta realizada!")
-        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
+        
 
     # Opción 7: Buscar libros por autor, editorial o género. Se deben sugerir las opciones y listar los resultados.
     def find_by_gen_auth_editor(self):
@@ -278,7 +278,7 @@ class BookManagement:
                 else:
                     print('No se encuentra el autor que especifica.')
         print("\nConsulta realizada!")
-        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
+        
                 
     # Opción 8: Buscar libros por número de autores. Se debe ingresar un número por ejemplo 2 (hace referencia a dos autores) y se deben listar todos los libros que contengan 2 autores.
     def find_by_number_of_authors(self):
@@ -295,7 +295,6 @@ class BookManagement:
             break
 
         print("\nConsulta realizada!")
-        print("Por favor vuelva a leer el archivo eligiendo la opcion 01\n")
 
 
 class FactoryBook:
@@ -359,18 +358,23 @@ def switch(case, book_management):
         return 
     elif case == 4:
         book_management.delete_book()
+        book_management.read_file(False)
         return
     elif case == 5:
         book_management.find_by_tit_isbn()
+        book_management.read_file(False)
         return
     elif case == 6:
         book_management.sort_by_title()
+        book_management.read_file(False)
         return
     elif case == 7:
         book_management.find_by_gen_auth_editor()
+        book_management.read_file(False)
         return
     elif case == 8:
         book_management.find_by_number_of_authors()
+        book_management.read_file(False)
         return
     elif case == 9:
         id = input_id()
